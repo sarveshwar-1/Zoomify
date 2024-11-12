@@ -69,6 +69,41 @@
         .controls button:active {
             background-color: #004494;
         }
+        #chat-display {
+  height: 200px;
+  overflow-y: scroll;
+  margin-bottom: 10px;
+  padding: 5px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+#chat-message {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+#send-button {
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#send-button:hover {
+  background-color: #0056b3;
+}
+
+#send-button:active {
+  background-color: #004494;
+}
+
     </style>
 </head>
 
@@ -78,6 +113,11 @@
         <button id="toggle-mic">Mic: On</button>
         <button id="toggle-camera">Camera: On</button>
         <button id="toggle-noise-cancellation">Noise Cancellation: On</button>
+    </div>
+    <div id="chat-container">
+        <div id="chat-display"></div>
+        <input type="text" id="chat-message" placeholder="Type a message...">
+        <button id="send-button">Send</button>
     </div>
 </body>
 

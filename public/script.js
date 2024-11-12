@@ -1,4 +1,4 @@
-const socket = io('https://192.168.245.143:3000');
+const socket = io('https://192.168.170.143:3000');
 
 socket.on('connect', () => {
   console.log('Connected to socket server');
@@ -8,10 +8,10 @@ socket.on('connect_error', (error) => {
   console.error('Connection error:', error);
 });
 
-const ip = '192.168.245.143';
+const ip = '192.168.170.143';
 const videoGrid = document.getElementById('video-grid');
 const myPeer = new Peer(undefined, {
-  host: '192.168.245.143',
+  host: '192.168.170.143',
   port: '3001',
   path: '/myapp',
   secure: true 
@@ -33,6 +33,34 @@ let destination;
 let biquadFilter;
 let filteredStream;
 let noiseCancellationEnabled = true;
+
+const chatInput = document.getElementById('chat-message');
+const chatDisplay = document.getElementById('chat-display');
+const sendButton = document.getElementById('send-button');
+
+
+sendButton.addEventListener('click', () => {
+  const message = chatInput.value;
+  if (message) {
+    socket.emit('message', message);
+    chatInput.value = ''; 
+    addMessageToChat('You', message);
+  }
+});
+
+
+socket.on('createMessage', (message, userId) => {
+  addMessageToChat(userId, message);
+});
+
+
+function addMessageToChat(sender, message) {
+  const messageElement = document.createElement('p');
+  messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  chatDisplay.append(messageElement);
+  chatDisplay.scrollTop = chatDisplay.scrollHeight;
+}
+
 
 navigator.mediaDevices.getUserMedia({
   video: true,
