@@ -1,0 +1,52 @@
+
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="/" class="brand">Zoomify</a>
+        <div class="user-info">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span id="username-display"></span>
+        </div>
+    </div>
+    <div class="navbar-right">
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+                stroke="currentColor" stroke-width="2" class="theme-icon">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+            </svg>
+            <span>Theme</span>
+        </div>
+    </div>
+</nav>
+
+<script>
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const themeIcon = document.querySelector('.theme-icon');
+        themeIcon.innerHTML = currentTheme === 'dark' 
+            ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+            : '<circle cx="12" cx="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('username-display').textContent = username;
+        }
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+    });
+</script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -8,117 +8,952 @@
     <script>
         const ROOM_ID = "<%= roomId %>"
     </script>
-    <script defer src="https://unpkg.com/peerjs@1.2.0/dist/peerjs.min.js"></script>
     <script src="/socket.io/socket.io.js" defer></script>
-    <script src="script.js" defer></script>
-    <title>Video Chat</title>
+    <script src="/script.js" defer></script>
+    <title>Zoomify Room</title>
     <style>
+        :root[data-theme="light"] {
+            --primary-color: #4a90e2;
+            --secondary-color: #f8f9fa;
+            --accent-color: #7c4dff;
+            --text-color: #333;
+            --bg-color: #ffffff;
+            --chat-bg: #f9f9f9;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --hover-bg: #f0f4f8;
+        }
+
+        :root[data-theme="dark"] {
+            --primary-color: #64b5f6;
+            --secondary-color: #1a1a1a;
+            --accent-color: #9575cd;
+            --text-color: #ffffff;
+            --bg-color: #121212;
+            --chat-bg: #1e1e1e;
+            --border-color: #2d2d2d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --hover-bg: #2d2d2d;
+        }
+
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 70px);
+            margin-top: 70px;
+        }
+
+        .video-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            position: relative;
         }
 
         #video-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            grid-gap: 10px;
-            width: 100%;
-            max-width: 1200px;
-            padding: 10px;
-            box-sizing: border-box;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 80px;
         }
 
         video {
             width: 100%;
-            height: 100%;
+            aspect-ratio: 16 / 9;
             object-fit: cover;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        video:hover {
+            transform: scale(1.05);
         }
 
         .controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .controls button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: var(--shadow);
+        }
+
+        .controls button:hover {
+            background-color: var(--hover-bg);
+            transform: translateY(-2px);
+        }
+
+        .controls button:active {
+            transform: translateY(0);
+        }
+
+        .controls button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .controls button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #chat-container {
+            width: 300px;
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-display {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: var(--chat-bg);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-input-area {
+            padding: 10px;
             display: flex;
             gap: 10px;
         }
 
-        .controls button {
+        #chat-message {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+        }
+
+        #send-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             padding: 10px 20px;
             font-size: 16px;
             border: none;
-            border-radius: 5px;
-            background-color: #007bff;
+            border-radius: 25px;
+            background-color: var(--primary-color);
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
         }
 
-        .controls button:hover {
-            background-color: #0056b3;
+        #send-button:hover {
+            background-color: #3a7bc8;
         }
 
-        .controls button:active {
-            background-color: #004494;
+        #send-button svg {
+            width: 20px;
+            height: 20px;
         }
-        #chat-display {
-  height: 200px;
-  overflow-y: scroll;
-  margin-bottom: 10px;
-  padding: 5px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
 
-#chat-message {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
+        @media (max-width: 1200px) {
+            #video-grid {
+                grid-template-columns: 1fr;
+            }
 
-#send-button {
-  padding: 10px 20px;
-  font-size: 14px;
-  border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
+            #video-grid> :nth-child(n+3) {
+                grid-column: span 1;
+            }
+        }
 
-#send-button:hover {
-  background-color: #0056b3;
-}
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
 
-#send-button:active {
-  background-color: #004494;
-}
+            #chat-container {
+                width: 100%;
+                height: 300px;
+            }
 
+            .controls {
+                flex-wrap: wrap;
+            }
+        }
+
+        .user-info {
+            position: static;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary-color);
+        }
+
+        .room-actions {
+            position: static;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .room-actions a {
+            background: var(--hover-bg);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: var (--shadow);
+        }
+
+        .room-actions a:hover {
+            transform: translateY(-2px);
+        }
+
+        .room-info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        #copy-room-id {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #copy-room-id:hover {
+            background: var(--accent-color);
+        }
+
+        #room-code {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .modal button:hover {
+            background: var(--accent-color);
+        }
+
+        .error-text {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .theme-switch {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .theme-switch:hover {
+            transform: translateY(-2px);
+        }
+
+        .video-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        .user-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .chat-message {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .chat-message.sent {
+            background-color: var(--primary-color);
+            color: white;
+            margin-left: auto;
+        }
+
+        .chat-message.received {
+            background-color: var(--hover-bg);
+            margin-right: auto;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--bg-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .room-id-corner {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--bg-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: var (--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            font-size: 0.9em;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: var(--hover-bg);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        #username-display {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .room-info {
+            background: var(--bg-color);
+        }
+
+        #chat-message {
+            background: var(--bg-color);
+            color: var (--text-color);
+            border-color: var(--border-color);
+        }
+
+        .modal {
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .modal input {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            opacity: 1;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Full-screen styles */
+        .video-wrapper.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: black;
+            cursor: default;
+        }
+
+        .video-wrapper.fullscreen video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Hide controls when in fullscreen */
+        .video-wrapper.fullscreen .video-controls {
+            display: none;
+        }
+
+        .video-wrapper.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw !important;
+            height: 85vh !important;
+            z-index: 2000;
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1400;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Modify/add these styles for video enlargement */
+        .video-wrapper.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw !important;
+            height: 85vh !important;
+            z-index: 2000;
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .video-wrapper.expanded video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Ensure other videos stay in their grid when one is expanded */
+        #video-grid {
+            position: relative;
+            z-index: 1;
+        }
     </style>
 </head>
 
 <body>
-    <div id="video-grid"></div>
-    <div class="controls">
-        <button id="toggle-mic">Mic: On</button>
-        <button id="toggle-camera">Camera: On</button>
-        <button id="toggle-noise-cancellation">Noise Cancellation: On</button>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <div class="user-info">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="username-display"></span>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="theme-icon">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                </svg>
+                <span>Theme</span>
+            </div>
+            <div class="room-actions">
+                <a href="/active-rooms">View Rooms</a>
+                <a href="/join-room">Leave Room</a>
+            </div>
+        </div>
+    </nav>
+
+    <button class="toggle-chat" onclick="toggleChat()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <div class="container">
+        <div class="video-container">
+            <div id="video-grid"></div>
+            <div class="controls">
+                <button id="toggle-mic">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-mic">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" x2="12" y1="19" y2="22"></line>
+                    </svg>
+                    Mute
+                </button>
+                <button id="toggle-camera">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-video">
+                        <path d="m22 8-6 4 6 4V8Z"></path>
+                        <rect width="14" height="12" x="2" y="6" rx="2" ry="2"></rect>
+                    </svg>
+                    Disable Video
+                </button>
+                <button id="toggle-noise-cancellation">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-wand-2">
+                        <path
+                            d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z">
+                        </path>
+                        <path d="m14 7 3 3"></path>
+                        <path d="M5 6v4"></path>
+                        <path d="M19 14v4"></path>
+                        <path d="M10 2v2"></path>
+                        <path d="M7 8H3"></path>
+                        <path d="M21 16h-4"></path>
+                        <path d="M11 3H9"></path>
+                    </svg>
+                    Disable Noise Cancellation
+                </button>
+                <button id="toggle-screen-share">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    Share Screen
+                </button>
+            </div>
+        </div>
+        <div id="chat-container">
+            <div id="chat-display"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-message" placeholder="Type a message...">
+                <button id="send-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-send">
+                        <line x1="22" x2="11" y1="2" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg> 
+                    
+                </button>
+            </div>
+        </div>
     </div>
-    <div id="chat-container">
-        <div id="chat-display"></div>
-        <input type="text" id="chat-message" placeholder="Type a message...">
-        <button id="send-button">Send</button>
+
+    <div class="room-id-corner">
+        <span>Room ID: <strong id="room-code"><%= roomId %></strong></span>
+        <button id="copy-room-id" onclick="copyRoomId()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy
+        </button>
     </div>
+
+    <div id="username-modal" class="modal-overlay" style="display: none;">
+        <div class="modal">
+            <h2>Enter Your Name</h2>
+            <input type="text" id="username-input" placeholder="Your name">
+            <div id="username-error" class="error-text">Please enter a valid name</div>
+            <button onclick="setUsername()">Join Meeting</button>
+        </div>
+    </div>
+
+    <div id="video-overlay" class="overlay"></div>
+
+    <script>
+        function checkUsername() {
+            const username = localStorage.getItem('username');
+            if (!username) {
+                document.getElementById('username-modal').style.display = 'flex';
+                return false;
+            }
+            return true;
+        }
+
+        function setUsername() {
+            const usernameInput = document.getElementById('username-input');
+            const errorText = document.getElementById('username-error');
+            const username = usernameInput.value.trim();
+
+            if (username.length < 2) {
+                errorText.style.display = 'block';
+                return;
+            }
+
+            localStorage.setItem('username', username);
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('username-modal').style.display = 'none';
+            
+            // Initialize the meeting after setting username
+            initializeMeeting();
+        }
+
+        function copyRoomId() {
+            const roomCode = document.getElementById('room-code').textContent;
+            navigator.clipboard.writeText(roomCode).then(() => {
+                const button = document.getElementById('copy-room-id');
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy
+                    `;
+                }, 2000);
+            });
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const themeIcon = document.querySelector('.theme-icon');
+            
+            if (currentTheme === 'dark') {
+                themeIcon.innerHTML = `
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                `;
+            } else {
+                themeIcon.innerHTML = `
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                `;
+            }
+        }
+
+        // Initialize theme
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkUsername()) {
+                initializeMeeting();
+            }
+        });
+
+        function addVideoStream(video, stream, userId) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'video-wrapper';
+            
+            video.srcObject = stream;
+            video.setAttribute('data-peer-id', userId);
+            
+            const controls = document.createElement('div');
+            controls.className = 'video-controls';
+            
+            // Create expand button with a more visible style
+            const expandBtn = document.createElement('button');
+            expandBtn.className = 'control-btn';
+            expandBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+            `;
+            expandBtn.title = "Expand video";
+            expandBtn.onclick = () => toggleExpanded(wrapper);
+            
+            controls.appendChild(expandBtn);
+            wrapper.appendChild(video);
+            wrapper.appendChild(controls);
+            
+            video.addEventListener('loadedmetadata', () => {
+                video.play();
+            });
+            
+            document.getElementById('video-grid').appendChild(wrapper);
+        }
+
+        function toggleExpanded(wrapper) {
+            const overlay = document.getElementById('video-overlay');
+            const isExpanded = wrapper.classList.contains('expanded');
+            
+            // Reset all videos
+            document.querySelectorAll('.video-wrapper').forEach(w => {
+                w.classList.remove('expanded');
+            });
+            
+            if (!isExpanded) {
+                wrapper.classList.add('expanded');
+                overlay.classList.add('active');
+                
+                // Add click handler to overlay to close expanded video
+                overlay.onclick = () => {
+                    wrapper.classList.remove('expanded');
+                    overlay.classList.remove('active');
+                };
+            } else {
+                wrapper.classList.remove('expanded');
+                overlay.classList.remove('active');
+            }
+        }
+
+        // Add ESC key handler
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const expandedVideo = document.querySelector('.video-wrapper.expanded');
+                const overlay = document.getElementById('video-overlay');
+                if (expandedVideo) {
+                    expandedVideo.classList.remove('expanded');
+                    overlay.classList.remove('active');
+                }
+            }
+        });
+
+        function toggleFullScreen(wrapper) {
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                }
+                wrapper.classList.add('fullscreen');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                wrapper.classList.remove('fullscreen');
+            }
+        }
+
+        // Add fullscreen change event listener
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+        function handleFullscreenChange() {
+            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            const videoWrappers = document.querySelectorAll('.video-wrapper');
+            videoWrappers.forEach(wrapper => {
+                wrapper.classList.toggle('fullscreen', wrapper === fullscreenElement);
+            });
+        }
+
+        function toggleChat() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.classList.toggle('show');
+        }
+
+        // Add this to your script.js addVideoStream function
+        function updateLayoutForSharedScreen(userId) {
+            const container = document.querySelector('.container');
+            const isSharing = document.querySelector('.video-wrapper[data-sharing="true"]');
+            const isViewer = isSharing && isSharing.querySelector('video').getAttribute('data-peer-id') === 'me';
+            
+            if (isViewer) {
+                container.classList.add('viewing-shared-screen');
+            } else {
+                container.classList.remove('viewing-shared-screen');
+            }
+        }
+    </script>
 </body>
 
 </html>

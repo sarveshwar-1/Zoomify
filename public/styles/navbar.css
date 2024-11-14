@@ -1,0 +1,72 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-color);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    background: var(--hover-bg);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--hover-bg);
+}
+
+.user-info svg {
+    width: 20px;
+    height: 20px;
+    color: var(--primary-color);
+}
+
+.controls button.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+#toggle-screen-share.active {
+    background-color: var(--accent-color);
+}

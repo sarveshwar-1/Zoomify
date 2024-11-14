@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join or Create Room - Zoomify</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <style>
+        :root[data-theme="light"] {
+            --primary-color: #4a90e2;
+            --secondary-color: #f8f9fa;
+            --accent-color: #7c4dff;
+            --text-color: #333;
+            --bg-color: #ffffff;
+            --gradient: linear-gradient(135deg, #4a90e2, #7c4dff);
+        }
+
+        :root[data-theme="dark"] {
+            --primary-color: #64b5f6;
+            --secondary-color: #1a1a1a;
+            --accent-color: #9575cd;
+            --text-color: #ffffff;
+            --bg-color: #121212;
+            --gradient: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient);
+            color: var(--text-color);
+        }
+
+        .container {
+            background: var(--bg-color);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            margin-top: 80px; /* Add margin for navbar */
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+            background: var(--bg-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4a90e2;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background-color: #e0e0e0;
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .view-rooms {
+            display: block;
+            text-align: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+
+        .view-rooms:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/" class="brand">Zoomify</a>
+            <div class="user-info">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="username-display"></span>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" stroke-width="2" class="theme-icon">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                </svg>
+                <span>Theme</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Welcome to Zoomify</h1>
+        <div class="form-group">
+            <input type="text" id="username" placeholder="Enter your name" required>
+            <div id="username-error" class="error-message">Please enter your name</div>
+        </div>
+        
+        <button id="create-room-btn">Create New Room</button>
+        
+        <div class="divider">OR</div>
+        
+        <div class="form-group">
+            <input type="text" id="room-id" placeholder="Enter Room ID">
+            <div id="room-error" class="error-message">Please enter a valid room ID</div>
+        </div>
+        
+        <button id="join-room-btn">Join Room</button>
+        
+        <a href="/active-rooms" class="view-rooms">View Active Rooms</a>
+    </div>
+
+    <script>
+        // Add theme toggle function
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.innerHTML = currentTheme === 'dark' 
+                ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+                : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>';
+        }
+
+        // Add theme initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon();
+            
+            const username = localStorage.getItem('username');
+            if (username) {
+                document.getElementById('username-display').textContent = username;
+            }
+        });
+
+        const username = localStorage.getItem('username');
+        const usernameInput = document.getElementById('username');
+        if (username) {
+            usernameInput.value = username;
+        }
+
+        function validateUsername() {
+            const username = usernameInput.value.trim();
+            const errorElement = document.getElementById('username-error');
+            if (!username) {
+                errorElement.style.display = 'block';
+                return false;
+            }
+            errorElement.style.display = 'none';
+            localStorage.setItem('username', username);
+            return true;
+        }
+
+        document.getElementById('create-room-btn').addEventListener('click', () => {
+            if (validateUsername()) {
+                fetch('/create-room')
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.href = `/room/${data.roomId}`;
+                    });
+            }
+        });
+
+        function validateRoomId(roomId) {
+            return /^\d{4}$/.test(roomId);
+        }
+
+        document.getElementById('join-room-btn').addEventListener('click', () => {
+            if (validateUsername()) {
+                const roomId = document.getElementById('room-id').value.trim();
+                const errorElement = document.getElementById('room-error');
+                
+                if (!validateRoomId(roomId)) {
+                    errorElement.textContent = 'Please enter a valid 4-digit room code';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                errorElement.style.display = 'none';
+                window.location.href = `/room/${roomId}`;
+            }
+        });
+    </script>
+</body>
+</html>

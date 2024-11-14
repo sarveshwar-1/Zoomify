@@ -16,6 +16,6 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use('/myapp', peerServer);
 
-server.listen(3001,'0.0.0.0', () => {
-  console.log('PeerJS server is running on https://192.168.170.143:3001');
+server.listen(3001, '0.0.0.0', () => {
+  console.log(`PeerJS server is running on port 3001`);
 });
