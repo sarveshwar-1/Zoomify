@@ -1,4 +1,4 @@
-// const ip = '192.168.11.138';
+
 
 function initializeMeeting() {
     const username = localStorage.getItem('username');
@@ -267,8 +267,6 @@ function initializeMeeting() {
                     const sender = pc.getSenders().find(s => s.track.kind === 'video');
                     if (sender) sender.replaceTrack(videoTrack);
                 });
-
-                // Just update the stream without changing layout
                 const oldTrack = stream.getVideoTracks()[0];
                 stream.removeTrack(oldTrack);
                 stream.addTrack(videoTrack);
@@ -302,7 +300,6 @@ function initializeMeeting() {
                         if (sender) sender.replaceTrack(videoTrack);
                     });
 
-                    // Just reset the stream without changing layout
                     const oldTrack = stream.getVideoTracks()[0];
                     stream.removeTrack(oldTrack);
                     stream.addTrack(videoTrack);

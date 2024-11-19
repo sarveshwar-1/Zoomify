@@ -141,5 +141,5 @@ io.on('connection', socket => {
 });
 
 server.listen(process.env.PORT || 3000, process.env.HOST || 'localhost', () => {
-    console.log(`Server running on http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`);
+    console.log(`Server running on https://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`);
 });
