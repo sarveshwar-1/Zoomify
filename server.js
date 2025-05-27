@@ -1,10 +1,9 @@
 require('dotenv').config();
 
 const express = require('express');
-const https = require('https');
+const http = require('http');
 const socketIo = require('socket.io');
 const { v4: uuidV4 } = require('uuid');
-const fs = require('fs');
 
 const app = express();
 
@@ -14,24 +13,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-const options = {
-  key: fs.readFileSync('key.pem'),  
-  cert: fs.readFileSync('cert.pem'),
-  secureOptions: require('constants').SSL_OP_NO_TLSv1 | require('constants').SSL_OP_NO_TLSv1_1,
-  ciphers: [
-    'ECDHE-RSA-AES128-GCM-SHA256',
-    'ECDHE-RSA-AES256-GCM-SHA384',
-    'ECDHE-RSA-AES128-SHA256',
-    'ECDHE-RSA-AES256-SHA384',
-    'AES128-GCM-SHA256',
-    'AES256-GCM-SHA384',
-    'AES128-SHA256',
-    'AES256-SHA256'
-  ].join(':'),
-  honorCipherOrder: true
-};
-
-const server = https.createServer(options, app);
+const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
@@ -141,5 +123,5 @@ io.on('connection', socket => {
 });
 
 server.listen(process.env.PORT || 3000, process.env.HOST || 'localhost', () => {
-    console.log(`Server running on https://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`);
+    console.log(`Server running on http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`);
 });
